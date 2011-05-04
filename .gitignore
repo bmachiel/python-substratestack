@@ -1,0 +1,6 @@
+build
+dist
+substratestack.egg-info
+substratestack/version.py
+*.pyc
+*~

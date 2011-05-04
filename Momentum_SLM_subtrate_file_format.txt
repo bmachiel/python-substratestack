@@ -1,0 +1,41 @@
+# this is a description of the SLM file format (reverse-engineered)
+
+VERSION <version>
+        100
+
+UNIT <unit>
+     um
+
+SUBNAME
+
+TOP     <?>             <plane>                 <real> <imag>
+        always 0        0 = Open Boundary       -       -
+                                \-> SUB0 defines TOP layer (see below) with thickness = -1
+                     /  1 = Perfect Cond.       -       -
+ Closed Boundary <--|   2 = Cond (S/m)          val     -
+                     \  4 = Imped (Ohm/sq)      val     val
+
+
+BOTTOM  <?>             <plane>                 <real>  <imag>
+        always 1        0 = Open Boundary       
+                     /  1 = Perfect Cond.       -       -
+ Closed Boundary <--|   2 = Cond (S/m)          val     -
+                     \  4 = Imped (Ohm/sq)      val     val
+
+
+SUB<number>     <name>  <Er_format>     <Re(Er)>        <Im/LossTan/Cond(Er)>   <MUr_format>    <Re(MUr)>       <Im/LossTan(MUr)>       <thickness>     <bottom>        <top>   <metal above>   <via in>        <unit>
+starts at 0             0 = Re/Im                                               0 = Re/Im                                               in <unit>       in meters       in m    1 = none        0 = no          6 = meter
+ SUB0 = TOP             1 = Re/LossTan                                          1 = Re/LossTan                                                                                  2 = strip       1 = yes         5 = cm
+                        2 = Re/Cond                                                                                                                                             3 = slot                        4 = mm
+                                                                                                                                                                                                                3 = um
+                                                                                                                                                                                                                1 = mil
+                                                                                                                                                                                                                2 = in
+                                                                                                                                                                                                                7 = ft
+
+MET<number>     <name>  <location>      <overlap prec>  <type>          <format>        <Re>    <Im>    <unit Re>       <unit Im>       <model>         <thickness>     <thickness unit>
+starts at 1             in meters       0               2 = Strip       1 = Perfect C.                                                  1 = Lumped      0 for via       um, mm, cm, meter, mil, in, ft
+                                        1               3 = Slot        3 = Cond. Sigma --------------> Siemens/m or Siemens/cm         2 = 2D Distr
+                                                        4 = Via         4 = Cond. Imped --------------> Ohm/square                      3 = 3D Distr
+                                                                                                                                        0 = No Expansion
+                                                                                                                                        1 = Expansion Up
+                                                                                                                                       -1 = Expansion Down
