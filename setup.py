@@ -34,6 +34,7 @@ setup(
     description=("Python package to simplify substrate stackups and export "
                  "them for use in Momentum and Sonnet"),
     url="http://github.com/bmachiel/python-substratestack",
+    license="BSD (2-clause)",
     keywords="substrate stack ADS Momentum Sonnet em",
     classifiers = [
         'Development Status :: 3 - Alpha',

@@ -1,3 +1,23 @@
+# Copyright (c) 2011 Brecht Machiels <brecht.machiels@esat.kuleuven.be>
+#                    ESAT-MICAS, K.U.Leuven
+#
+# This file is part of python-substratestack
+# (http://github.com/bmachiel/python-substratestack).
+#
+# python-substratestack is free software: you can redistribute it and/or modify
+# it under the terms of the BSD (2-clause) license.
+#
+# python-substratestack is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the included LICENSE
+# file for details.
+
+"""python-substratestack
+
+substratestack is a Python module that helps simplify substrate stackups and
+export them for use in Momentum and Sonnet.
+"""
+
 from __future__ import division
 
 from pyx import *
