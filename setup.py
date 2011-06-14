@@ -33,7 +33,15 @@ setup(
     author_email="brecht.machiels@esat.kuleuven.be",
     description=("Python package to simplify substrate stackups and export "
                  "them for use in Momentum and Sonnet"),
-    license="GPL",
+    url="http://github.com/bmachiel/python-substratestack",
     keywords="substrate stack ADS Momentum Sonnet em",
-    url="https://github.com/bmachiel/python-substratestack",
+    classifiers = [
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)',
+        'Topic :: Software Development :: Libraries :: Python Modules'
+    ]
 )
