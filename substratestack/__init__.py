@@ -20,8 +20,7 @@ export them for use in Momentum and Sonnet.
 
 from __future__ import division
 
-from pyx import *
-from pyx import bbox
+from pyx import bbox, canvas, color, deco, document, path, style, text, unit
 
 import re
 from copy import copy
