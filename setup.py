@@ -26,7 +26,7 @@ setup(
     name='substratestack',
     version=version,
     packages=['substratestack'],
-    requires=['pyx'],
+    requires=['reportlab'],
     provides=['substratestack'],
     
     author="Brecht Machiels",

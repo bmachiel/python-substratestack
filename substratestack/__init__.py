@@ -20,7 +20,8 @@ export them for use in Momentum and Sonnet.
 
 from __future__ import division
 
-from pyx import bbox, canvas, color, deco, document, path, style, text, unit
+from reportlab.pdfgen import canvas
+from reportlab.lib import units
 
 import re
 from copy import copy
@@ -53,13 +54,6 @@ mOhm_sq = 1e-3 # Ohm/sq         sheet resistance
 Ohm = 1 # Ohm
 mOhm = 1e-3 # Ohm
 
-
-paper = document.paperformat.A4
-unit.set(defaultunit="mm")
-text.set(mode="latex")
-text.preamble(r"\usepackage{times}")
-text.preamble(r"\usepackage{amssymb}")
-text.preamble(r"\parindent=0pt")
 
 
 class SubstrateLayer:
@@ -668,6 +662,10 @@ class SubstrateStack:
         single_page: render a single tall page or split up the stack
         
         """
+        if not single_page:
+            from warnings import warn
+            warn('The single_page option is ignored for the time being.')
+        
         # positions for labels and boxes
         x1 = 0
         x2 = 160
@@ -680,157 +678,153 @@ class SubstrateStack:
         x_metal_width = 60
         x_via_width = 40
         
+        from reportlab.lib.pagesizes import letter, A4
+        paper = A4
+        fontsize = 10
+        font = 'Times'
+        regular_font = font + '-Roman'
+        bold_font = font + '-Bold'
+        
         stack_height = self.get_stack_height()
         top_interface = self.oxide_layers[-1].top_interface
         total_interfaces = self.get_interface_number(top_interface)
-        canvas_height = 0.95 * pages * unit.tomm(paper.height)
-        factor = canvas_height / stack_height
+        page_height = pages * paper[1]
+        height_padding = 30 * units.mm
+        canvas_height = page_height - height_padding
+        factor = canvas_height / units.mm / stack_height
         escape = ('_', )
-        canvas_pages = []
-        c = canvas.canvas()
+        #canvas_pages = []
+        
+        c = canvas.Canvas(filename + '.pdf', (paper[0], page_height))
+        c.translate(25 * units.mm, height_padding / 2)
+        c.setFont(regular_font, fontsize)
+        c.setStrokeGray(0.0)
+        c.setLineWidth(0.3 * units.mm)
         y = 0
-        for oxide_layer in self.oxide_layers:
-            bottom_interface = oxide_layer.bottom_interface
-            oxide_thickness_in_mm = oxide_layer.thickness * factor
-            fill_color = color.grey(1.0 - oxide_layer.epsilon_rel/20.0)
-            #c.stroke(path.line(x1, y, x2, y), [style.linewidth(0.3)])
-            c.stroke(path.rect(x1, y, x2 - x1, oxide_thickness_in_mm),
-                [style.linewidth(0.3), deco.filled([fill_color])])
-            c.text(x_thickness, y + oxide_thickness_in_mm / 2.0,
-                   r'$d = %g \mu m~(%g kA)$' % (oxide_layer.thickness / um,
-                                                oxide_layer.thickness / kA),
-                   [text.halign.left, text.valign.middle])
-            c.text(x_eps, y + oxide_thickness_in_mm / 2.0,
-                   '$\epsilon_r = %g$' % (oxide_layer.epsilon_rel),
-                   [text.halign.left, text.valign.middle])
 
+        def draw_oxide(oxide_layer, y):
+            oxide_thickness = oxide_layer.thickness * factor
+            fill_color = 1.0 - oxide_layer.epsilon_rel/20.0
+            c.setFillGray(fill_color)
+            c.rect(x1 * units.mm, y * units.mm,
+                   (x2 - x1) * units.mm,  oxide_thickness * units.mm,
+                   stroke=1, fill=1)
+            c.setFillGray(0.0)
+            c.drawString(x_thickness * units.mm,
+                         (y + oxide_thickness / 2) * units.mm - fontsize / 2,
+                         'd = %g um (%g kA)' % (oxide_layer.thickness / um,
+                                                oxide_layer.thickness / kA))
+            c.drawString(x_eps * units.mm,
+                         (y + oxide_thickness / 2) * units.mm - fontsize / 2,
+                         'eps_r = %g' % (oxide_layer.epsilon_rel, ))
+            
+            return oxide_thickness
+        
+        def draw_interface(interface, y):
             # interface numbers
-            number = self.get_interface_number(bottom_interface)
-            c.text(x1 - x_interface_number - x_space, y,
-                   '$%d$' % (number),
-                   [text.halign.right, text.valign.middle])
-            c.text(x1 - x_interface_number2 - x_space, y,
-                   '$%d$' % (total_interfaces - number),
-                   [text.halign.right, text.valign.middle])
-            c.stroke(path.line(x1 - x_interface_number, y, x1, y),
-                     [style.linewidth(0.3), deco.earrow()])
+            number = self.get_interface_number(interface)
+            c.drawRightString((x1 - x_interface_number - x_space) * units.mm,
+                              y * units.mm - fontsize / 2,
+                              '%d' % (number, ))
+            c.drawRightString((x1 - x_interface_number2 - x_space) * units.mm,
+                              y * units.mm - fontsize / 2,
+                              '%d' % (total_interfaces - number, ))
+            c.line((x1 - x_interface_number) * units.mm, y * units.mm,
+                   x1 * units.mm, y * units.mm)
 
             # interface position
-            c.stroke(path.line(x2, y, x2 + x_interface_number / 2.0, y),
-                     [style.linewidth(0.3)])
-            c.text(x2 + x_interface_number/2.0 + x_space, y,
-                   '$%g \mu m$' %
-                      (self.get_interface_position(bottom_interface) / um),
-                   [text.halign.left, text.valign.middle])
+            c.line(x2 * units.mm, y * units.mm,
+                   (x2 + x_interface_number / 2) * units.mm, y * units.mm)
+            c.drawString((x2 + x_interface_number / 2 + x_space) * units.mm,
+                         y * units.mm - fontsize / 2,
+                         '%g um' % (self.get_interface_position(interface) / um, ))
 
-            y += oxide_thickness_in_mm
-
-        top_interface = oxide_layer.top_interface
-        # last interface number
-        c.text(x1-x_interface_number-x_space, y,
-               '$%d$' % (self.get_interface_number(top_interface)),
-               [text.halign.right, text.valign.middle])
-        c.text(x1 - x_interface_number2 - x_space, y,
-               '$%d$' % (0),
-               [text.halign.right, text.valign.middle])
-        c.stroke(path.line(x1 - x_interface_number, y, x1, y),
-                 [style.linewidth(0.3), deco.earrow()])
-
-        # last interface position
-        c.stroke(path.line(x2, y, x2 + x_interface_number/2.0, y),
-                 [style.linewidth(0.3)])
-        c.text(x2 + x_interface_number/2.0 + x_space, y,
-               '$%g \mu m$' %
-                  (self.get_interface_position(top_interface) / um),
-               [text.halign.left, text.valign.middle])
-
-        canvas_pages.append(c)
-
-        # draw metals
-        document_pages = []
-        current_page = 0
-        c = canvas_pages[current_page]
-        y = 0
-        metal_color = color.rgb(0.5, 0.8, 1.0)
-        via_color = color.rgb(0.8, 0.8, 1.0)
         for oxide_layer in self.oxide_layers:
             bottom_interface = oxide_layer.bottom_interface
-            oxide_thickness_in_mm = oxide_layer.thickness * factor
-            # metal
-            if bottom_interface.metal:
-                metal_layer = bottom_interface.metal
-                extend_direction = metal_layer.extend_direction
-                metal_thickness_in_mm = metal_layer.thickness * factor
-                c.stroke(path.rect(x1 + x_metal_offset, y, x_metal_width,
-                         extend_direction * metal_thickness_in_mm),
-                         [style.linewidth(0.3), deco.filled([metal_color])])
-                center = (x1 + x_metal_offset + x_metal_width / 2.0,
-                          y + extend_direction * metal_thickness_in_mm / 2.0)
-                sigma = metal_layer.get_conductivity()
-                name = metal_layer.name
-                for char in escape:
-                    name = name.replace(char, '\\' + char)
-                metal_text = (r'\begin{center}{\bf %s}\\' % (name) +
-                              r'$d = %g \mu m~(%g kA)$\\' %
-                                 (metal_layer.thickness / um,
-                                  metal_layer.thickness / kA) +
-                              r'$\sigma = %.3g S/m$\\' % (sigma)+
-                              r'$R_{sheet} = %g m\Omega/\square$\end{center}' %
-                                (metal_layer.sheet_resistance / mOhm_sq))
-                c.text(center[0], center[1], metal_text, 
-                       [text.parbox(x_metal_width), text.valign.middle,
-                        text.halign.boxcenter])
-                
-                # via
-                if self.get_via_by_bottom_metal(metal_layer):
-                    via = self.get_via_by_bottom_metal(metal_layer)
-                    via_height = self.get_via_height(via) * factor
-                    y_top_of_metal = \
-                       max(y, y + extend_direction * metal_thickness_in_mm)
-                    c.stroke(path.rect(x1 + x_metal_offset +
-                                (x_metal_width - x_via_width) / 2.0,
-                             y_top_of_metal, x_via_width, via_height),
-                             [style.linewidth(0.3), deco.filled([via_color])])
-                    if extend_direction == UP:
-                        y_extra = metal_layer.thickness * factor
-                    else:
-                        y_extra = 0
-                    center = (x1 + x_metal_offset + x_metal_width / 2.0,
-                              y + via_height / 2.0 + y_extra)
-                    sigma = via.get_conductivity()
-                    name = via.name
-                    for char in escape:
-                        name = name.replace(char, '\\' + char)
-                    via_text = (r'\begin{center}{\bf %s}\\' % (name) +
-                                r'$h = %g \mu m~(%g kA)$\\' %
-                                 (via.get_height() / um,
-                                  via.get_height() / kA) +
-                                r'$\sigma_{eq} = %.3g S/m$\\' % (sigma) +
-                                r'$R = %g\Omega$\\' % (via.resistance) +
-                                r'via fill = %g \%%\end{center}' %
-                                   (via.fill * 100))
-                    c.text(center[0], center[1], via_text,
-                           [text.parbox(x_via_width), text.valign.middle,
-                            text.halign.boxcenter])
+            oxide_thickness = oxide_layer.thickness * factor
+            draw_oxide(oxide_layer, y)
+            draw_interface(bottom_interface, y)
+            y += oxide_thickness
 
-            y += oxide_thickness_in_mm
+        top_interface = oxide_layer.top_interface
+        draw_interface(top_interface, y)
 
-        c.stroke(path.line(x1, y, x2, y), [style.linewidth(0.3)])
+#        canvas_pages.append(c)
 
-        if single_page:
-            tall_paper = copy(paper)
-            tall_paper.height = pages * paper.height
-            document_pages.append(document.page(c, None,
-                                                paperformat=tall_paper))
-        else:
-            for i in range(3):
-                bounding_box = \
-                   bbox.bbox(x1, i * 0.95 * unit.tomm(paper.height), x2,
-                             (i + 1) * 0.95 * unit.tomm(paper.height))
-                document_pages.append(document.page(c, None, paper,
-                                                    bbox=bounding_box))
+        def draw_metal(metal_layer):
+            extend_direction = metal_layer.extend_direction
+            metal_thickness = metal_layer.thickness * factor
+            c.setFillColorRGB(*metal_color)
+            c.rect((x1 + x_metal_offset) * units.mm,y * units.mm,
+                   x_metal_width * units.mm,
+                   (extend_direction * metal_thickness) * units.mm,
+                   stroke=1, fill=1)
+            center = (x1 + x_metal_offset + x_metal_width / 2.0,
+                      y + extend_direction * metal_thickness / 2.0)
+            text = (metal_layer.name,
+                    'd = %g um (%g kA)' % (metal_layer.thickness / um,
+                                           metal_layer.thickness / kA),
+                    'sigma = %.3g S/m' % metal_layer.get_conductivity(),
+                    'Rsheet = %g mOhm/square' %
+                    (metal_layer.sheet_resistance / mOhm_sq))
+            c.setFillGray(0.0)
+            current_y = center[1] * units.mm + (len(text) / 2 - 0.5) * fontsize
+            for i, line in enumerate(text):
+                if i == 0:
+                    c.saveState()
+                    c.setFont(bold_font, fontsize)
+                c.drawCentredString(center[0] * units.mm, current_y, line)
+                if i == 0:
+                    c.restoreState()
+                current_y -= fontsize
+                       
+        def draw_via(via, metal, y):
+            extend_direction = metal.extend_direction
+            metal_thickness = metal.thickness * factor
+            via_height = self.get_via_height(via) * factor
+            y_top_of_metal = max(y, y + extend_direction * metal_thickness)
+            #print y + extend_direction * metal_thickness, y_top_of_metal
+            x = x1 + x_metal_offset + (x_metal_width - x_via_width) / 2
+            c.setFillColorRGB(*via_color)
+            c.rect(x * units.mm, y_top_of_metal * units.mm,
+                   x_via_width * units.mm, via_height * units.mm,
+                   stroke=1, fill=1)
+            center = (x1 + x_metal_offset + x_metal_width / 2.0,
+                      y + via_height / 2.0)
+            if extend_direction == UP:
+                center = (center[0], center[1] + metal_thickness)
+            text = (via.name,
+                    'h = %g um (%g kA)' % (via.get_height() / um,
+                                           via.get_height() / kA),
+                    'sigma_eq = %.3g S/m' % via.get_conductivity(),
+                    'R = %g Ohm' % (via.resistance),
+                    'via fill = %g %%' % (via.fill * 100))
+            c.setFillGray(0.0)
+            current_y = center[1] * units.mm + (len(text) / 2 - 0.5) * fontsize
+            for i, line in enumerate(text):
+                if i == 0:
+                    c.saveState()
+                    c.setFont(bold_font, fontsize)
+                c.drawCentredString(center[0] * units.mm, current_y, line)
+                if i == 0:
+                    c.restoreState()
+                current_y -= fontsize
 
-        doc = document.document(document_pages)
+        # draw metals
+        y = 0
+        metal_color = (0.5, 0.8, 1.0)
+        via_color = (0.8, 0.8, 1.0)
+        for oxide_layer in self.oxide_layers:
+            metal = oxide_layer.bottom_interface.metal
+            oxide_thickness = oxide_layer.thickness * factor
+            if metal:
+                draw_metal(metal)
+                via = self.get_via_by_bottom_metal(metal)
+                if via:
+                    draw_via(via, metal, y)
 
-        #doc.writePSfile(filename + '.ps')
-        doc.writePDFfile(filename + '.pdf')
+            y += oxide_thickness
+
+        c.showPage()
+        c.save()
+        return
