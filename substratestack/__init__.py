@@ -714,11 +714,11 @@ class SubstrateStack:
             c.setFillGray(0.0)
             c.drawString(x_thickness * units.mm,
                          (y + oxide_thickness / 2) * units.mm - fontsize / 2,
-                         'd = %g um (%g kA)' % (oxide_layer.thickness / um,
+                         u'd = %g \u03bcm (%g kA)' % (oxide_layer.thickness / um,
                                                 oxide_layer.thickness / kA))
             c.drawString(x_eps * units.mm,
                          (y + oxide_thickness / 2) * units.mm - fontsize / 2,
-                         'eps_r = %g' % (oxide_layer.epsilon_rel, ))
+                         u'\u03b5r = %g' % (oxide_layer.epsilon_rel, ))
             
             return oxide_thickness
         
@@ -739,7 +739,7 @@ class SubstrateStack:
                    (x2 + x_interface_number / 2) * units.mm, y * units.mm)
             c.drawString((x2 + x_interface_number / 2 + x_space) * units.mm,
                          y * units.mm - fontsize / 2,
-                         '%g um' % (self.get_interface_position(interface) / um, ))
+                         u'%g \u03bcm' % (self.get_interface_position(interface) / um, ))
 
         for oxide_layer in self.oxide_layers:
             bottom_interface = oxide_layer.bottom_interface
@@ -764,10 +764,10 @@ class SubstrateStack:
             center = (x1 + x_metal_offset + x_metal_width / 2.0,
                       y + extend_direction * metal_thickness / 2.0)
             text = (metal_layer.name,
-                    'd = %g um (%g kA)' % (metal_layer.thickness / um,
+                    u'd = %g \u03bcm (%g kA)' % (metal_layer.thickness / um,
                                            metal_layer.thickness / kA),
-                    'sigma = %.3g S/m' % metal_layer.get_conductivity(),
-                    'Rsheet = %g mOhm/square' %
+                    u'\u03c3 = %.3g S/m' % metal_layer.get_conductivity(),
+                    u'Rsheet = %g m\u2126/\u25a1' %
                     (metal_layer.sheet_resistance / mOhm_sq))
             c.setFillGray(0.0)
             current_y = center[1] * units.mm + (len(text) / 2 - 0.5) * fontsize
@@ -796,11 +796,11 @@ class SubstrateStack:
             if extend_direction == UP:
                 center = (center[0], center[1] + metal_thickness)
             text = (via.name,
-                    'h = %g um (%g kA)' % (via.get_height() / um,
+                    u'h = %g \u03bcm (%g kA)' % (via.get_height() / um,
                                            via.get_height() / kA),
-                    'sigma_eq = %.3g S/m' % via.get_conductivity(),
-                    'R = %g Ohm' % (via.resistance),
-                    'via fill = %g %%' % (via.fill * 100))
+                    u'\u03c3eq = %.3g S/m' % via.get_conductivity(),
+                    u'R = %g \u2126' % (via.resistance),
+                    'via fill = %.4g %%' % (via.fill * 100))
             c.setFillGray(0.0)
             current_y = center[1] * units.mm + (len(text) / 2 - 0.5) * fontsize
             for i, line in enumerate(text):
