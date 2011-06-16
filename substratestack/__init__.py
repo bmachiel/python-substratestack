@@ -120,7 +120,10 @@ class MetalLayer:
 
     def __repr__(self):
         """Return a textual representation of the metal"""
-        upordown = 'up' if self.extend_direction > 0 else 'down'
+        if self.extend_direction > 0:
+            upordown = 'up'
+        else:
+            upordown = 'down'
         return self.name + " (" + upordown + ")"
 
     def get_resistivity(self):
