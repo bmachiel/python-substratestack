@@ -33,12 +33,11 @@ from copy import copy
 ## TODO: generate layer mapping file for Sonnet GDS import
 
 
-progname = __file__
+progname = 'python-substratestack'
 try:
     from version import __version__
 except ImportError:
-    __version__ = 'unknown (package not built using setuptools)'
-progrevision = __version__
+    __version__ = 'unknown version (package not built using setuptools)'
 
 
 m = 1 # m                       1 meter
@@ -596,9 +595,9 @@ class SubstrateStack:
         text.append("VER 11.56")
         text.append("HEADER")
         text.append("DAT %s" % now.strftime("%m/%d/%Y %H:%M:%S"))
-        text.append("BUILT_BY_CREATED %s r%s %s" %
-           (progname, progrevision, now.strftime("%m/%d/%Y  %H:%M:%S")))
-        text.append("BUILT_BY_SAVED %s r%s" % (progname, progrevision))
+        text.append("BUILT_BY_CREATED %s %s %s" %
+           (progname, __version__, now.strftime("%m/%d/%Y  %H:%M:%S")))
+        text.append("BUILT_BY_SAVED %s %s" % (progname, __version__))
         text.append("MDATE %s" % now.strftime("%m/%d/%Y  %H:%M:%S"))
         text.append("HDATE %s" % now.strftime("%m/%d/%Y  %H:%M:%S"))
         text.append("END HEADER")
