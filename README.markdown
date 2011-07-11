@@ -32,10 +32,10 @@ file or a Sonnet project for direct inclusion in these solvers.
 Installation
 ------------
 
-The *substratestack* package requires at least version 2.4 of Python. In
-addition, the [ReportLab Toolkit][reportlab] is required for rendering the
-stacks to PDF. On Windows, you should install ReportLab using the provided
-[Windows installers][rl-download].
+The *substratestack* package requires at least version 2.4 of Python. Python 3.x
+is not supported at the moment. In addition, the [ReportLab Toolkit][reportlab]
+is required for rendering the stacks to PDF. On Windows, you should install
+ReportLab using the provided [Windows installers][rl-download].
 
 The most convenient option for getting *substratestack* is by using [pip][pip]
 or [easy_install][setuptools]. To automatically download the archive from
