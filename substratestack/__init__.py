@@ -697,7 +697,8 @@ class SubstrateStack:
         escape = ('_', )
         #canvas_pages = []
         
-        c = canvas.Canvas(filename + '.pdf', (paper[0], page_height))
+        file = open(filename + '.pdf', 'w')
+        c = canvas.Canvas(file, (paper[0], page_height))
         c.translate(25 * units.mm, height_padding / 2)
         c.setFont(regular_font, fontsize)
         c.setStrokeGray(0.0)
@@ -829,4 +830,5 @@ class SubstrateStack:
 
         c.showPage()
         c.save()
+        file.close()
         return
